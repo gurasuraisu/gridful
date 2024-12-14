@@ -1,60 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Gridful</title>
-    <style>
-        /* Grid container */
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr); /* 12-column grid */
-            gap: 20px; /* Space between grid items */
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grid System Example</title>
+  <style>
+    .container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr); /* 4 equal-width columns */
+      grid-template-rows: repeat(3, 1fr); /* 3 equal-height rows */
+      grid-gap: 20px;
+      height: 100vh;
+      padding: 20px;
+    }
 
-        /* Responsive column classes */
-        .col-1 { grid-column: span 1; }
-        .col-2 { grid-column: span 2; }
-        .col-3 { grid-column: span 3; }
-        .col-4 { grid-column: span 4; }
-        .col-6 { grid-column: span 6; }
-        .col-12 { grid-column: span 12; }
+    .item {
+      background-color: #f0f0f0;
+      border: 1px solid #ddd;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 18px;
+      font-weight: bold;
+    }
 
-        /* Optional: Add some visual styling */
-        .grid-item {
-            background-color: #f0f0f0;
-            border: 1px solid #ddd;
-            padding: 20px;
-            text-align: center;
-        }
+    .item:nth-child(1) {
+      grid-column: 1 / span 2;
+      grid-row: 1 / span 2;
+    }
 
-        /* Responsive design */
-        @media (max-width: 768px) {
-            .grid-container {
-                grid-template-columns: repeat(6, 1fr); /* 6 columns on tablets */
-            }
-        }
+    .item:nth-child(2) {
+      grid-column: 3 / span 2;
+      grid-row: 1 / span 1;
+    }
 
-        @media (max-width: 480px) {
-            .grid-container {
-                grid-template-columns: 1fr; /* Single column on mobile */
-            }
-        }
-    </style>
+    .item:nth-child(3) {
+      grid-column: 3 / span 1;
+      grid-row: 2 / span 1;
+    }
+
+    .item:nth-child(4) {
+      grid-column: 4 / span 1;
+      grid-row: 2 / span 1;
+    }
+
+    .item:nth-child(5) {
+      grid-column: 1 / span 2;
+      grid-row: 3 / span 1;
+    }
+
+    .item:nth-child(6) {
+      grid-column: 3 / span 2;
+      grid-row: 2 / span 2;
+    }
+  </style>
 </head>
 <body>
-    <div class="grid-container">
-        <div class="grid-item col-3">Column 3</div>
-        <div class="grid-item col-3">Column 3</div>
-        <div class="grid-item col-6">Column 6</div>
-        
-        <div class="grid-item col-4">Column 4</div>
-        <div class="grid-item col-4">Column 4</div>
-        <div class="grid-item col-4">Column 4</div>
-        
-        <div class="grid-item col-12">Full Width Column</div>
-    </div>
+  <div class="container">
+    <div class="item">1</div>
+    <div class="item">2</div>
+    <div class="item">3</div>
+    <div class="item">4</div>
+    <div class="item">5</div>
+    <div class="item">6</div>
+  </div>
 </body>
 </html>
