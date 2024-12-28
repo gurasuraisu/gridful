@@ -692,67 +692,77 @@ function retryWeatherLoad(widgetId) {
     }
 }
         
-        function showWidgetSettings(type) {
-            const modal = document.getElementById('widgetSettingsModal');
-            const content = document.getElementById('widgetSettingsContent');
-            
-            let settingsHTML = '';
-            switch (type) {
-                case 'weather':
-                    settingsHTML = `
-                        <input type="text" class="settings-input" id="location" 
-                               placeholder="Enter location (e.g., London)" required>
-                    `;
-                    break;
-case 'clock':
-                    settingsHTML = `
-                        <input type="text" class="settings-input" id="timezone" 
-                               placeholder="Enter timezone (e.g., America/New_York)" required>
-                    `;
-                    break;
-            }
-            content.innerHTML = settingsHTML;
-            
-            // Store the widget type for later use
-            modal.setAttribute('data-widget-type', type);
-            modal.style.display = 'block';
-            
-            // Close the widget selection modal
-            closeWidgetModal();
-        }
+function showWidgetSettings(type) {
+    const modal = document.getElementById('widgetSettingsModal');
+    const content = document.getElementById('widgetSettingsContent');
+    
+    let settingsHTML = '';
+    switch (type) {
+        case 'weather':
+            settingsHTML = `
+                <input type="text" class="settings-input" id="location" 
+                       placeholder="Enter location (e.g., London)" required>
+            `;
+            break;
+        case 'clock':
+            settingsHTML = `
+                <input type="text" class="settings-input" id="timezone" 
+                       placeholder="Enter timezone (e.g., America/New_York)" required>
+            `;
+            break;
+    }
+    content.innerHTML = settingsHTML;
+    
+    modal.setAttribute('data-widget-type', type);
+    modal.style.display = 'block';
+    
+    closeWidgetModal();
+}
 
         function closeWidgetSettingsModal() {
             document.getElementById('widgetSettingsModal').style.display = 'none';
         }
 
-        function saveWidgetSettings() {
-            const modal = document.getElementById('widgetSettingsModal');
-            const type = modal.getAttribute('data-widget-type');
-            
-            let settings = {};
-            switch (type) {
-                case 'weather':
-                    const location = document.getElementById('location').value;
-                    if (!location) {
-                        alert('Please enter a location');
-                        return;
-                    }
-                    settings = { location };
-                    break;
-                case 'clock':
-                    const timezone = document.getElementById('timezone').value;
-                    if (!timezone) {
-                        alert('Please enter a timezone');
-                        return;
-                    }
-                    settings = { timezone };
-                    break;
+function saveWidgetSettings() {
+    const modal = document.getElementById('widgetSettingsModal');
+    const type = modal.getAttribute('data-widget-type');
+    
+    let settings = {};
+    switch (type) {
+        case 'weather':
+            const location = document.getElementById('location').value;
+            if (!location) {
+                alert('Please enter a location');
+                return;
             }
+            settings = { location };
+            break;
+        case 'clock':
+            const timezone = document.getElementById('timezone').value;
+            if (!timezone) {
+                alert('Please enter a timezone');
+                return;
+            }
+            settings = { timezone };
+            break;
+    }
 
-            widgetSystem.addWidget(type, settings);
-            closeWidgetSettingsModal();
-        }
+    widgetSystem.addWidget(type, settings);
+    closeWidgetSettingsModal();
+}
 
+window.onclick = function(event) {
+    const widgetModal = document.getElementById('widgetModal');
+    const settingsModal = document.getElementById('widgetSettingsModal');
+    
+    if (event.target === widgetModal) {
+        closeWidgetModal();
+    }
+    if (event.target === settingsModal) {
+        closeWidgetSettingsModal();
+    }
+};
+        
         function removeWidget(id) {
             widgetSystem.removeWidget(parseInt(id));
         }
