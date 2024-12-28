@@ -318,28 +318,28 @@
 class WidgetSystem {
     constructor() {
         this.widgets = [];
-        this.updateInterval = null;
         this.loadWidgets();
         this.initializeDragAndDrop();
-        this.startAutoUpdate();
     }
 
-    startAutoUpdate() {
-        // Update widgets every 5 minutes
-        this.updateInterval = setInterval(() => {
-            this.updateAllWidgets();
-        }, 5 * 60 * 1000);
-    }
-
-    async updateAllWidgets() {
-        for (const widget of this.widgets) {
-            if (widget.type === 'weather') {
-                const element = document.querySelector(`[data-id="${widget.id}"]`);
-                if (element) {
-                    await this.renderWeatherWidget(element, widget.settings);
-                }
-            }
+    loadWidgets() {
+        const savedWidgets = localStorage.getItem('widgets');
+        if (savedWidgets) {
+            this.widgets = JSON.parse(savedWidgets);
+            this.renderWidgets();
         }
+    }
+
+    addWidget(type, settings) {
+        const widget = {
+            id: Date.now(),
+            type,
+            settings,
+            position: this.widgets.length
+        };
+        this.widgets.push(widget);
+        this.saveWidgets();
+        this.renderWidget(widget);
     }
 
     saveWidgets() {
@@ -407,6 +407,8 @@ class WidgetSystem {
                 grid.insertBefore(widgetElement, grid.lastChild);
             }
 
+const widgetSystem = new WidgetSystem();
+        
 async renderWeatherWidget(element, settings) {
     element.className = 'widget weather-widget';
     
