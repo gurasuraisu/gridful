@@ -103,17 +103,42 @@
         }
 
         /* Weather Widget Specific */
-        .weather-widget .temp {
-            font-size: 3rem;
-            margin: 10px 0;
-        }
+.weather-widget .weather-main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin: 20px 0;
+}
 
-        .weather-widget .conditions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
+.weather-widget .weather-icon {
+    font-size: 48px;
+}
+
+.weather-widget .temp {
+    font-size: 36px;
+    font-weight: 500;
+}
+
+.weather-widget .conditions {
+    text-align: center;
+    margin: 10px 0;
+}
+
+.weather-widget .humidity {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.weather-widget .location {
+    text-align: center;
+    color: #bdd6ff;
+    font-size: 0.9em;
+    margin-top: 10px;
+}
 
         /* Modal Styles */
         .modal {
@@ -203,6 +228,44 @@
         .dragging {
             opacity: 0.5;
         }
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #bdd6ff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error {
+    color: #ff6b6b;
+    text-align: center;
+    padding: 20px;
+}
+
+.error button {
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.widget-content.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 150px;
+}
     </style>
 </head>
 <body>
@@ -252,24 +315,43 @@
 
     <script>
         // Widget System Implementation
-        class WidgetSystem {
-            constructor() {
-                this.widgets = [];
-                this.loadWidgets();
-                this.initializeDragAndDrop();
-            }
+class WidgetSystem {
+    constructor() {
+        this.widgets = [];
+        this.updateInterval = null;
+        this.loadWidgets();
+        this.initializeDragAndDrop();
+        this.startAutoUpdate();
+    }
 
-            loadWidgets() {
-                const savedWidgets = localStorage.getItem('widgets');
-                if (savedWidgets) {
-                    this.widgets = JSON.parse(savedWidgets);
-                    this.renderWidgets();
+    startAutoUpdate() {
+        // Update widgets every 5 minutes
+        this.updateInterval = setInterval(() => {
+            this.updateAllWidgets();
+        }, 5 * 60 * 1000);
+    }
+
+    async updateAllWidgets() {
+        for (const widget of this.widgets) {
+            if (widget.type === 'weather') {
+                const element = document.querySelector(`[data-id="${widget.id}"]`);
+                if (element) {
+                    await this.renderWeatherWidget(element, widget.settings);
                 }
             }
+        }
+    }
 
-            saveWidgets() {
-                localStorage.setItem('widgets', JSON.stringify(this.widgets));
-            }
+    saveWidgets() {
+        const widgetData = this.widgets.map(widget => ({
+            id: widget.id,
+            type: widget.type,
+            settings: widget.settings,
+            position: widget.position
+        }));
+        localStorage.setItem('widgets', JSON.stringify(widgetData));
+    }
+}
 
             addWidget(type, settings) {
                 const widget = {
@@ -325,31 +407,53 @@
                 grid.insertBefore(widgetElement, grid.lastChild);
             }
 
-            async renderWeatherWidget(element, settings) {
-                element.className = 'widget weather-widget';
-                element.innerHTML = `
-                    <div class="widget-header">
-                        <div class="widget-title">
-                            <span class="material-symbols-rounded">sunny</span>
-                            <span>Weather - ${settings.location}</span>
-                        </div>
-                        <div class="widget-controls">
-                            <button class="widget-control-btn" onclick="editWidget('${element.getAttribute('data-id')}')">
-                                <span class="material-symbols-rounded">settings</span>
-                            </button>
-                            <button class="widget-control-btn" onclick="removeWidget('${element.getAttribute('data-id')}')">
-                                <span class="material-symbols-rounded">close</span>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="widget-content">
-                        <div class="temp">Loading...</div>
-                        <div class="conditions">
-                            <span class="material-symbols-rounded">water_drop</span>
-                            <span>Loading...</span>
-                        </div>
-                    </div>
-                `;
+async renderWeatherWidget(element, settings) {
+    element.className = 'widget weather-widget';
+    
+    // Show loading state
+    element.innerHTML = `
+        <div class="widget-header">
+            <div class="widget-title">
+                <span class="material-symbols-rounded">sunny</span>
+                <span>Weather - ${settings.location}</span>
+            </div>
+            <div class="widget-controls">
+                <button class="widget-control-btn" onclick="editWidget('${element.getAttribute('data-id')}')">
+                    <span class="material-symbols-rounded">settings</span>
+                </button>
+                <button class="widget-control-btn" onclick="removeWidget('${element.getAttribute('data-id')}')">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
+            </div>
+        </div>
+        <div class="widget-content loading">
+            <div class="loading-spinner"></div>
+        </div>
+    `;
+
+    try {
+        const weather = await this.fetchWeatherData(settings.location);
+        element.querySelector('.widget-content').innerHTML = `
+            <div class="temp">${weather.temp}°C</div>
+            <div class="conditions">
+                <img src="https://openweathermap.org/img/wn/${weather.icon}.png" alt="${weather.condition}">
+                <span>${weather.condition}</span>
+            </div>
+            <div class="humidity">
+                <span class="material-symbols-rounded">water_drop</span>
+                <span>${weather.humidity}% Humidity</span>
+            </div>
+        `;
+    } catch (error) {
+        element.querySelector('.widget-content').innerHTML = `
+            <div class="error">
+                <span class="material-symbols-rounded">error</span>
+                <span>Failed to load weather data</span>
+                <button onclick="retryWeatherLoad('${element.getAttribute('data-id')}')">Retry</button>
+            </div>
+        `;
+    }
+}
 
                 // Fetch weather data
                 try {
@@ -397,17 +501,126 @@
                 timeElement.textContent = time;
             }
 
-            async fetchWeatherData(location) {
-                // Simulate weather API call
-                return new Promise(resolve => {
-                    setTimeout(() => {
-                        resolve({
-                            temp: Math.floor(Math.random() * 30),
-                            humidity: Math.floor(Math.random() * 100)
-                        });
-                    }, 1000);
-                });
+    async fetchWeatherData(location) {
+        try {
+            // First, geocode the location
+            const geocodeResponse = await fetch(
+                `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1&language=en&format=json`
+            );
+            const geocodeData = await geocodeResponse.json();
+            
+            if (!geocodeData.results || geocodeData.results.length === 0) {
+                throw new Error('Location not found');
             }
+            
+            const { latitude, longitude, name, country } = geocodeData.results[0];
+            
+            // Then fetch weather data
+            const weatherResponse = await fetch(
+                `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto`
+            );
+            const weatherData = await weatherResponse.json();
+            
+            // Convert weather code to condition and icon
+            const weatherInfo = this.getWeatherInfo(weatherData.current.weather_code);
+            
+            return {
+                temp: Math.round(weatherData.current.temperature_2m),
+                humidity: weatherData.current.relative_humidity_2m,
+                condition: weatherInfo.condition,
+                icon: weatherInfo.icon,
+                location: `${name}, ${country}`
+            };
+        } catch (error) {
+            console.error('Weather fetch error:', error);
+            throw error;
+        }
+    }
+
+    getWeatherInfo(code) {
+        // WMO Weather interpretation codes
+        // https://open-meteo.com/en/docs
+        const weatherCodes = {
+            0: { condition: 'Clear sky', icon: 'clear_day' },
+            1: { condition: 'Mainly clear', icon: 'partly_cloudy_day' },
+            2: { condition: 'Partly cloudy', icon: 'partly_cloudy_day' },
+            3: { condition: 'Overcast', icon: 'cloud' },
+            45: { condition: 'Foggy', icon: 'foggy' },
+            48: { condition: 'Depositing rime fog', icon: 'foggy' },
+            51: { condition: 'Light drizzle', icon: 'rainy' },
+            53: { condition: 'Moderate drizzle', icon: 'rainy' },
+            55: { condition: 'Dense drizzle', icon: 'rainy' },
+            61: { condition: 'Slight rain', icon: 'rainy' },
+            63: { condition: 'Moderate rain', icon: 'rainy' },
+            65: { condition: 'Heavy rain', icon: 'rainy' },
+            71: { condition: 'Slight snow', icon: 'weather_snowy' },
+            73: { condition: 'Moderate snow', icon: 'weather_snowy' },
+            75: { condition: 'Heavy snow', icon: 'weather_snowy' },
+            77: { condition: 'Snow grains', icon: 'weather_snowy' },
+            80: { condition: 'Slight rain showers', icon: 'rainy' },
+            81: { condition: 'Moderate rain showers', icon: 'rainy' },
+            82: { condition: 'Violent rain showers', icon: 'rainy' },
+            85: { condition: 'Slight snow showers', icon: 'weather_snowy' },
+            86: { condition: 'Heavy snow showers', icon: 'weather_snowy' },
+            95: { condition: 'Thunderstorm', icon: 'thunderstorm' },
+            96: { condition: 'Thunderstorm with slight hail', icon: 'thunderstorm' },
+            99: { condition: 'Thunderstorm with heavy hail', icon: 'thunderstorm' }
+        };
+
+        return weatherCodes[code] || { condition: 'Unknown', icon: 'question_mark' };
+    }
+
+    async renderWeatherWidget(element, settings) {
+        element.className = 'widget weather-widget';
+        
+        // Show loading state
+        element.innerHTML = `
+            <div class="widget-header">
+                <div class="widget-title">
+                    <span class="material-symbols-rounded">sunny</span>
+                    <span>Weather - ${settings.location}</span>
+                </div>
+                <div class="widget-controls">
+                    <button class="widget-control-btn" onclick="editWidget('${element.getAttribute('data-id')}')">
+                        <span class="material-symbols-rounded">settings</span>
+                    </button>
+                    <button class="widget-control-btn" onclick="removeWidget('${element.getAttribute('data-id')}')">
+                        <span class="material-symbols-rounded">close</span>
+                    </button>
+                </div>
+            </div>
+            <div class="widget-content loading">
+                <div class="loading-spinner"></div>
+            </div>
+        `;
+
+        try {
+            const weather = await this.fetchWeatherData(settings.location);
+            element.querySelector('.widget-content').innerHTML = `
+                <div class="weather-main">
+                    <span class="material-symbols-rounded weather-icon">${weather.icon}</span>
+                    <div class="temp">${weather.temp}°C</div>
+                </div>
+                <div class="conditions">
+                    <span>${weather.condition}</span>
+                </div>
+                <div class="humidity">
+                    <span class="material-symbols-rounded">water_drop</span>
+                    <span>${weather.humidity}% Humidity</span>
+                </div>
+                <div class="location">${weather.location}</div>
+            `;
+        } catch (error) {
+            element.querySelector('.widget-content').innerHTML = `
+                <div class="error">
+                    <span class="material-symbols-rounded">error</span>
+                    <span>${error.message || 'Failed to load weather data'}</span>
+                    <button onclick="retryWeatherLoad('${element.getAttribute('data-id')}')">Retry</button>
+                </div>
+            `;
+        }
+    }
+}
 
             initializeDragAndDrop() {
                 const grid = document.getElementById('widgetGrid');
@@ -467,6 +680,16 @@
             document.getElementById('widgetModal').style.display = 'none';
         }
 
+function retryWeatherLoad(widgetId) {
+    const widget = widgetSystem.widgets.find(w => w.id === parseInt(widgetId));
+    if (widget) {
+        const element = document.querySelector(`[data-id="${widgetId}"]`);
+        if (element) {
+            widgetSystem.renderWeatherWidget(element, widget.settings);
+        }
+    }
+}
+        
         function showWidgetSettings(type) {
             const modal = document.getElementById('widgetSettingsModal');
             const content = document.getElementById('widgetSettingsContent');
