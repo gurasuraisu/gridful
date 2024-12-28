@@ -315,14 +315,86 @@
 
     <script>
         // Widget System Implementation
-        function showWidgetModal() {
-            document.getElementById('widgetModal').style.display = 'block';
+function showWidgetSettings(type) {
+    const modal = document.getElementById('widgetSettingsModal');
+    const content = document.getElementById('widgetSettingsContent');
+    
+    let settingsHTML = '';
+    switch (type) {
+        case 'weather':
+            settingsHTML = `
+                <input type="text" class="settings-input" id="location" 
+                       placeholder="Enter location (e.g., London)" required>
+            `;
+            break;
+        case 'clock':
+            settingsHTML = `
+                <input type="text" class="settings-input" id="timezone" 
+                       placeholder="Enter timezone (e.g., America/New_York)" required>
+            `;
+            break;
+    }
+    content.innerHTML = settingsHTML;
+    
+    modal.setAttribute('data-widget-type', type);
+    modal.style.display = 'block';
+    
+    closeWidgetModal();
+}
+
+        function closeWidgetSettingsModal() {
+            document.getElementById('widgetSettingsModal').style.display = 'none';
         }
 
-        function closeWidgetModal() {
-            document.getElementById('widgetModal').style.display = 'none';
-        }
+function saveWidgetSettings() {
+    const modal = document.getElementById('widgetSettingsModal');
+    const type = modal.getAttribute('data-widget-type');
+    
+    let settings = {};
+    switch (type) {
+        case 'weather':
+            const location = document.getElementById('location').value;
+            if (!location) {
+                alert('Please enter a location');
+                return;
+            }
+            settings = { location };
+            break;
+        case 'clock':
+            const timezone = document.getElementById('timezone').value;
+            if (!timezone) {
+                alert('Please enter a timezone');
+                return;
+            }
+            settings = { timezone };
+            break;
+    }
+
+    widgetSystem.addWidget(type, settings);
+    closeWidgetSettingsModal();
+}
+
+window.onclick = function(event) {
+    const widgetModal = document.getElementById('widgetModal');
+    const settingsModal = document.getElementById('widgetSettingsModal');
+    
+    if (event.target === widgetModal) {
+        closeWidgetModal();
+    }
+    if (event.target === settingsModal) {
+        closeWidgetSettingsModal();
+    }
+};
         
+        function removeWidget(id) {
+            widgetSystem.removeWidget(parseInt(id));
+        }
+
+        function editWidget(id) {
+            // Implementation for editing existing widgets
+            alert('Edit functionality coming soon!');
+        }
+
 class WidgetSystem {
     constructor() {
         this.widgets = [];
@@ -358,9 +430,7 @@ class WidgetSystem {
             position: widget.position
         }));
         localStorage.setItem('widgets', JSON.stringify(widgetData));
-    }
-}
-
+        
             removeWidget(id) {
                 this.widgets = this.widgets.filter(w => w.id !== id);
                 this.saveWidgets();
@@ -402,6 +472,7 @@ class WidgetSystem {
                 const grid = document.getElementById('widgetGrid');
                 grid.insertBefore(widgetElement, grid.lastChild);
             }
+    }
 
 const widgetSystem = new WidgetSystem();
         
@@ -679,86 +750,6 @@ function retryWeatherLoad(widgetId) {
         }
     }
 }
-        
-function showWidgetSettings(type) {
-    const modal = document.getElementById('widgetSettingsModal');
-    const content = document.getElementById('widgetSettingsContent');
-    
-    let settingsHTML = '';
-    switch (type) {
-        case 'weather':
-            settingsHTML = `
-                <input type="text" class="settings-input" id="location" 
-                       placeholder="Enter location (e.g., London)" required>
-            `;
-            break;
-        case 'clock':
-            settingsHTML = `
-                <input type="text" class="settings-input" id="timezone" 
-                       placeholder="Enter timezone (e.g., America/New_York)" required>
-            `;
-            break;
-    }
-    content.innerHTML = settingsHTML;
-    
-    modal.setAttribute('data-widget-type', type);
-    modal.style.display = 'block';
-    
-    closeWidgetModal();
-}
-
-        function closeWidgetSettingsModal() {
-            document.getElementById('widgetSettingsModal').style.display = 'none';
-        }
-
-function saveWidgetSettings() {
-    const modal = document.getElementById('widgetSettingsModal');
-    const type = modal.getAttribute('data-widget-type');
-    
-    let settings = {};
-    switch (type) {
-        case 'weather':
-            const location = document.getElementById('location').value;
-            if (!location) {
-                alert('Please enter a location');
-                return;
-            }
-            settings = { location };
-            break;
-        case 'clock':
-            const timezone = document.getElementById('timezone').value;
-            if (!timezone) {
-                alert('Please enter a timezone');
-                return;
-            }
-            settings = { timezone };
-            break;
-    }
-
-    widgetSystem.addWidget(type, settings);
-    closeWidgetSettingsModal();
-}
-
-window.onclick = function(event) {
-    const widgetModal = document.getElementById('widgetModal');
-    const settingsModal = document.getElementById('widgetSettingsModal');
-    
-    if (event.target === widgetModal) {
-        closeWidgetModal();
-    }
-    if (event.target === settingsModal) {
-        closeWidgetSettingsModal();
-    }
-};
-        
-        function removeWidget(id) {
-            widgetSystem.removeWidget(parseInt(id));
-        }
-
-        function editWidget(id) {
-            // Implementation for editing existing widgets
-            alert('Edit functionality coming soon!');
-        }
 
         // Close modals when clicking outside
         window.onclick = function(event) {
