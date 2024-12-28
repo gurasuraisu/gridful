@@ -1,68 +1,554 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Grid System Example</title>
-  <style>
-    .container {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr); /* 4 equal-width columns */
-      grid-template-rows: repeat(3, 1fr); /* 3 equal-height rows */
-      grid-gap: 20px;
-      height: 100vh;
-      padding: 20px;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,700,0,0" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
 
-    .item {
-      background-color: #f0f0f0;
-      border: 1px solid #ddd;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 18px;
-      font-weight: bold;
-    }
+        body {
+            background-color: #1c1c1c;
+            min-height: 100vh;
+            padding: 20px;
+            user-select: none;
+        }
 
-    .item:nth-child(1) {
-      grid-column: 1 / span 2;
-      grid-row: 1 / span 2;
-    }
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-    .item:nth-child(2) {
-      grid-column: 3 / span 2;
-      grid-row: 1 / span 1;
-    }
+        .widget-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
 
-    .item:nth-child(3) {
-      grid-column: 3 / span 1;
-      grid-row: 2 / span 1;
-    }
+        .widget {
+            background: #2a2a2a;
+            border-radius: 15px;
+            padding: 20px;
+            min-height: 200px;
+            position: relative;
+            cursor: move;
+            border: 2px solid #666666;
+        }
 
-    .item:nth-child(4) {
-      grid-column: 4 / span 1;
-      grid-row: 2 / span 1;
-    }
+        .widget:hover {
+            border-color: #bdd6ff;
+        }
 
-    .item:nth-child(5) {
-      grid-column: 1 / span 2;
-      grid-row: 3 / span 1;
-    }
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: #bdd6ff;
+        }
 
-    .item:nth-child(6) {
-      grid-column: 3 / span 2;
-      grid-row: 2 / span 2;
-    }
-  </style>
+        .widget-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .widget-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .widget-control-btn {
+            background: none;
+            border: none;
+            color: #666666;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .widget-control-btn:hover {
+            color: #bdd6ff;
+        }
+
+        .widget-content {
+            color: white;
+        }
+
+        .add-widget-btn {
+            background: #2a2a2a;
+            border: 2px dashed #666666;
+            border-radius: 15px;
+            width: 100%;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #666666;
+            font-size: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .add-widget-btn:hover {
+            border-color: #bdd6ff;
+            color: #bdd6ff;
+        }
+
+        /* Weather Widget Specific */
+        .weather-widget .temp {
+            font-size: 3rem;
+            margin: 10px 0;
+        }
+
+        .weather-widget .conditions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #2a2a2a;
+            border-radius: 15px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .widget-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .widget-option {
+            background: #1c1c1c;
+            border: 2px solid #666666;
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .widget-option:hover {
+            border-color: #bdd6ff;
+            color: #bdd6ff;
+        }
+
+        .settings-input {
+            background: #1c1c1c;
+            border: 2px solid #666666;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            width: 100%;
+            margin: 8px 0;
+        }
+
+        .settings-input:focus {
+            border-color: #bdd6ff;
+            outline: none;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-btn {
+            background: #666666;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .modal-btn.primary {
+            background: #bdd6ff;
+            color: #1c1c1c;
+        }
+
+        .dragging {
+            opacity: 0.5;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="item">1</div>
-    <div class="item">2</div>
-    <div class="item">3</div>
-    <div class="item">4</div>
-    <div class="item">5</div>
-    <div class="item">6</div>
-  </div>
+    <div class="dashboard">
+        <div class="widget-grid" id="widgetGrid">
+            <!-- Widgets will be dynamically added here -->
+            <button class="add-widget-btn" onclick="showWidgetModal()">
+                <span class="material-symbols-rounded">add</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Widget Selection Modal -->
+    <div id="widgetModal" class="modal">
+        <div class="modal-content">
+            <h2 class="widget-header">Add Widget</h2>
+            <div class="widget-options">
+                <div class="widget-option" onclick="showWidgetSettings('weather')">
+                    <span class="material-symbols-rounded">sunny</span>
+                    <span>Weather</span>
+                </div>
+                <div class="widget-option" onclick="showWidgetSettings('clock')">
+                    <span class="material-symbols-rounded">schedule</span>
+                    <span>Clock</span>
+                </div>
+                <!-- Add more widget options as needed -->
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn" onclick="closeWidgetModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Widget Settings Modal -->
+    <div id="widgetSettingsModal" class="modal">
+        <div class="modal-content">
+            <h2 class="widget-header">Widget Settings</h2>
+            <div id="widgetSettingsContent">
+                <!-- Settings form will be dynamically added here -->
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn" onclick="closeWidgetSettingsModal()">Cancel</button>
+                <button class="modal-btn primary" onclick="saveWidgetSettings()">Add Widget</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Widget System Implementation
+        class WidgetSystem {
+            constructor() {
+                this.widgets = [];
+                this.loadWidgets();
+                this.initializeDragAndDrop();
+            }
+
+            loadWidgets() {
+                const savedWidgets = localStorage.getItem('widgets');
+                if (savedWidgets) {
+                    this.widgets = JSON.parse(savedWidgets);
+                    this.renderWidgets();
+                }
+            }
+
+            saveWidgets() {
+                localStorage.setItem('widgets', JSON.stringify(this.widgets));
+            }
+
+            addWidget(type, settings) {
+                const widget = {
+                    id: Date.now(),
+                    type,
+                    settings,
+                    position: this.widgets.length
+                };
+                this.widgets.push(widget);
+                this.saveWidgets();
+                this.renderWidget(widget);
+            }
+
+            removeWidget(id) {
+                this.widgets = this.widgets.filter(w => w.id !== id);
+                this.saveWidgets();
+                this.renderWidgets();
+            }
+
+            renderWidgets() {
+                const grid = document.getElementById('widgetGrid');
+                grid.innerHTML = '';
+                
+                // Sort widgets by position
+                this.widgets.sort((a, b) => a.position - b.position)
+                    .forEach(widget => this.renderWidget(widget));
+                
+                // Add the "Add Widget" button
+                const addButton = document.createElement('button');
+                addButton.className = 'add-widget-btn';
+                addButton.onclick = () => showWidgetModal();
+                addButton.innerHTML = '<span class="material-symbols-rounded">add</span>';
+                grid.appendChild(addButton);
+            }
+
+            renderWidget(widget) {
+                const widgetElement = document.createElement('div');
+                widgetElement.className = 'widget';
+                widgetElement.setAttribute('data-id', widget.id);
+                widgetElement.draggable = true;
+
+                // Widget content based on type
+                switch (widget.type) {
+                    case 'weather':
+                        this.renderWeatherWidget(widgetElement, widget.settings);
+                        break;
+                    case 'clock':
+                        this.renderClockWidget(widgetElement, widget.settings);
+                        break;
+                }
+
+                const grid = document.getElementById('widgetGrid');
+                grid.insertBefore(widgetElement, grid.lastChild);
+            }
+
+            async renderWeatherWidget(element, settings) {
+                element.className = 'widget weather-widget';
+                element.innerHTML = `
+                    <div class="widget-header">
+                        <div class="widget-title">
+                            <span class="material-symbols-rounded">sunny</span>
+                            <span>Weather - ${settings.location}</span>
+                        </div>
+                        <div class="widget-controls">
+                            <button class="widget-control-btn" onclick="editWidget('${element.getAttribute('data-id')}')">
+                                <span class="material-symbols-rounded">settings</span>
+                            </button>
+                            <button class="widget-control-btn" onclick="removeWidget('${element.getAttribute('data-id')}')">
+                                <span class="material-symbols-rounded">close</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="widget-content">
+                        <div class="temp">Loading...</div>
+                        <div class="conditions">
+                            <span class="material-symbols-rounded">water_drop</span>
+                            <span>Loading...</span>
+                        </div>
+                    </div>
+                `;
+
+                // Fetch weather data
+                try {
+                    const weather = await this.fetchWeatherData(settings.location);
+                    element.querySelector('.temp').textContent = `${weather.temp}°C`;
+                    element.querySelector('.conditions').innerHTML = `
+                        <span class="material-symbols-rounded">water_drop</span>
+                        <span>${weather.humidity}% Humidity</span>
+                    `;
+                } catch (error) {
+                    element.querySelector('.widget-content').innerHTML = `
+                        <div class="error">Failed to load weather data</div>
+                    `;
+                }
+            }
+
+            renderClockWidget(element, settings) {
+                element.innerHTML = `
+                    <div class="widget-header">
+                        <div class="widget-title">
+                            <span class="material-symbols-rounded">schedule</span>
+                            <span>Clock - ${settings.timezone}</span>
+                        </div>
+                        <div class="widget-controls">
+                            <button class="widget-control-btn" onclick="editWidget('${element.getAttribute('data-id')}')">
+                                <span class="material-symbols-rounded">settings</span>
+                            </button>
+                            <button class="widget-control-btn" onclick="removeWidget('${element.getAttribute('data-id')}')">
+                                <span class="material-symbols-rounded">close</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="widget-content">
+                        <div class="time"></div>
+                    </div>
+                `;
+
+                this.updateClock(element, settings.timezone);
+                setInterval(() => this.updateClock(element, settings.timezone), 1000);
+            }
+
+            updateClock(element, timezone) {
+                const timeElement = element.querySelector('.time');
+                const time = new Date().toLocaleTimeString('en-US', { timeZone: timezone });
+                timeElement.textContent = time;
+            }
+
+            async fetchWeatherData(location) {
+                // Simulate weather API call
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        resolve({
+                            temp: Math.floor(Math.random() * 30),
+                            humidity: Math.floor(Math.random() * 100)
+                        });
+                    }, 1000);
+                });
+            }
+
+            initializeDragAndDrop() {
+                const grid = document.getElementById('widgetGrid');
+
+                grid.addEventListener('dragstart', (e) => {
+                    if (e.target.classList.contains('widget')) {
+                        e.target.classList.add('dragging');
+                    }
+                });
+
+                grid.addEventListener('dragend', (e) => {
+                    if (e.target.classList.contains('widget')) {
+                        e.target.classList.remove('dragging');
+                    }
+                });
+
+                grid.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const dragging = document.querySelector('.dragging');
+                    if (!dragging) return;
+
+                    const siblings = [...grid.querySelectorAll('.widget:not(.dragging)')];
+                    const nextSibling = siblings.find(sibling => {
+                        const box = sibling.getBoundingClientRect();
+                        return e.clientY <= box.top + box.height / 2;
+                    });
+
+                    if (nextSibling) {
+                        grid.insertBefore(dragging, nextSibling);
+                    } else {
+                        grid.insertBefore(dragging, grid.lastChild);
+                    }
+
+                    // Update positions
+                    const widgets = [...grid.querySelectorAll('.widget')];
+                    widgets.forEach((widget, index) => {
+                        const id = parseInt(widget.getAttribute('data-id'));
+                        const widgetData = this.widgets.find(w => w.id === id);
+                        if (widgetData) {
+                            widgetData.position = index;
+                        }
+                    });
+                    this.saveWidgets();
+                });
+            }
+        }
+
+        // Initialize widget system
+        const widgetSystem = new WidgetSystem();
+
+        // Modal functions
+        function showWidgetModal() {
+            document.getElementById('widgetModal').style.display = 'block';
+        }
+
+        function closeWidgetModal() {
+            document.getElementById('widgetModal').style.display = 'none';
+        }
+
+        function showWidgetSettings(type) {
+            const modal = document.getElementById('widgetSettingsModal');
+            const content = document.getElementById('widgetSettingsContent');
+            
+            let settingsHTML = '';
+            switch (type) {
+                case 'weather':
+                    settingsHTML = `
+                        <input type="text" class="settings-input" id="location" 
+                               placeholder="Enter location (e.g., London)" required>
+                    `;
+                    break;
+case 'clock':
+                    settingsHTML = `
+                        <input type="text" class="settings-input" id="timezone" 
+                               placeholder="Enter timezone (e.g., America/New_York)" required>
+                    `;
+                    break;
+            }
+            content.innerHTML = settingsHTML;
+            
+            // Store the widget type for later use
+            modal.setAttribute('data-widget-type', type);
+            modal.style.display = 'block';
+            
+            // Close the widget selection modal
+            closeWidgetModal();
+        }
+
+        function closeWidgetSettingsModal() {
+            document.getElementById('widgetSettingsModal').style.display = 'none';
+        }
+
+        function saveWidgetSettings() {
+            const modal = document.getElementById('widgetSettingsModal');
+            const type = modal.getAttribute('data-widget-type');
+            
+            let settings = {};
+            switch (type) {
+                case 'weather':
+                    const location = document.getElementById('location').value;
+                    if (!location) {
+                        alert('Please enter a location');
+                        return;
+                    }
+                    settings = { location };
+                    break;
+                case 'clock':
+                    const timezone = document.getElementById('timezone').value;
+                    if (!timezone) {
+                        alert('Please enter a timezone');
+                        return;
+                    }
+                    settings = { timezone };
+                    break;
+            }
+
+            widgetSystem.addWidget(type, settings);
+            closeWidgetSettingsModal();
+        }
+
+        function removeWidget(id) {
+            widgetSystem.removeWidget(parseInt(id));
+        }
+
+        function editWidget(id) {
+            // Implementation for editing existing widgets
+            alert('Edit functionality coming soon!');
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const widgetModal = document.getElementById('widgetModal');
+            const settingsModal = document.getElementById('widgetSettingsModal');
+            
+            if (event.target === widgetModal) {
+                closeWidgetModal();
+            }
+            if (event.target === settingsModal) {
+                closeWidgetSettingsModal();
+            }
+        };
+    </script>
 </body>
 </html>
