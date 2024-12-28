@@ -315,6 +315,14 @@
 
     <script>
         // Widget System Implementation
+        function showWidgetModal() {
+            document.getElementById('widgetModal').style.display = 'block';
+        }
+
+        function closeWidgetModal() {
+            document.getElementById('widgetModal').style.display = 'none';
+        }
+        
 class WidgetSystem {
     constructor() {
         this.widgets = [];
@@ -352,18 +360,6 @@ class WidgetSystem {
         localStorage.setItem('widgets', JSON.stringify(widgetData));
     }
 }
-
-            addWidget(type, settings) {
-                const widget = {
-                    id: Date.now(),
-                    type,
-                    settings,
-                    position: this.widgets.length
-                };
-                this.widgets.push(widget);
-                this.saveWidgets();
-                this.renderWidget(widget);
-            }
 
             removeWidget(id) {
                 this.widgets = this.widgets.filter(w => w.id !== id);
@@ -674,14 +670,6 @@ async renderWeatherWidget(element, settings) {
         const widgetSystem = new WidgetSystem();
 
         // Modal functions
-        function showWidgetModal() {
-            document.getElementById('widgetModal').style.display = 'block';
-        }
-
-        function closeWidgetModal() {
-            document.getElementById('widgetModal').style.display = 'none';
-        }
-
 function retryWeatherLoad(widgetId) {
     const widget = widgetSystem.widgets.find(w => w.id === parseInt(widgetId));
     if (widget) {
